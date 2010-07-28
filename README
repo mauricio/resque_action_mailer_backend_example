@@ -1,0 +1,50 @@
+== resque_action_mailer_backend_example
+
+This is the example application for the resque_action_mailer_backend gem.
+The changes made into this application to get it's emails to be sent over using
+Resque were creating the *lib/tasks/resque.rake* file and then defining the
+*resque:setup* task as requiring the *environment* task that loads the Rails
+environment. This file should require the resque tasks file, below:
+
+  #lib/tasks/resque.rake
+  require 'resque/tasks'
+  namespace :resque do
+    task :setup => :environment
+  end
+
+Then, in the *config/environments/development.rb* file the email delivery method
+was changed to *:resque* and, finally, in the environment.rb file the
+resque_action_mailer_backend gem is required with:
+
+  config.gem "resque_action_mailer_backend"
+
+If you're going to use this application for testing, you should add your email
+configuration at *config/initializers/email_config.rb*, then you can start a
+resque worker with:
+
+  rake resque:work QUEUE=* VERBOSE=1
+
+And then you can send a test email with:
+
+  script/runner "Mailer.deliver_test"
+
+The email will show up at the Resque worker console and you'll recive it as soon
+as the worker finishes sending it.
+
+== Resque and the append only rolling file
+
+If you're using the default Redis configuration, you're probably using the
+append only file as a backup for your Redis dabase. As the name implies, the
+file is append only so once you get contents in there, they'll never be removed
+and this will make the file grow bigger until it blows your hard drive.
+
+Obviously, it's going to take some time for something like this to happen, but
+with emails being sent things could change so you should be safe and setup a
+cron job running the code that tells Redis to rebuild the file with the current
+memory state. This is done by sending the BGREWRITEAOF command to Redis and this
+project already includes the *scripts/redis_rebuild* file that does just that so
+you don't even have to worry about writting it, just setting up the cron job.
+
+== Copyright
+
+Copyright (c) 2010 Maurício Linhares. See LICENSE for details.

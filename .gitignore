@@ -1,0 +1,13 @@
+nbproject
+.project
+*.log
+*.tmp
+*~
+*.pid
+tmp/template
+public/system
+tmp/*
+config/solr/data/*
+coverage/*
+rerun.txt
+config/initializers/email_config_ignored.rb
